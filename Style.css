@@ -1,0 +1,20 @@
+body {
+    background-color: #ccffff;
+    background-image: url("Haikei.png"); 
+}
+
+.sentence{
+    text-align:center;
+}
+
+.button_function{
+    text-align:center;
+ }
+
+ .In_result{
+    text-align:center;
+ }
+
+ .Val_result{
+    text-align:center;
+ }

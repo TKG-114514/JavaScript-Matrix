@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<link href="Style.css" rel="stylesheet" type="text/css">
+
+<head>
+    <meta charset="utf-8">
+    <title>課題2</title>
+    <script>
+        function $(id) { return (document.getElementById(id)); }
+
+        //グローバル変数
+        var n = 3;
+
+        //初期化
+        function init() {
+            var sample = [[1, 8, 9], [-3, 2, 1], [4, 1, 5]];
+            createTable();
+            fillTable(sample);
+        }
+
+        //サイズ変更
+        function matrixsize(s) {
+            var tmp = table2Array();
+            s = parseInt(s);
+            if (s <= 0) { alert("nは0以上です"); return false; }
+            else { n = s; }
+            createTable();
+            fillTable(tmp);
+        }
+
+        //表を作る
+        function createTable() {
+            var i, j;
+            var t = "<table style=\"margin:auto;\">\n";
+            for (i = 0; i <= n; i++) {
+                t += "<tr>\n";
+                for (j = 0; j <= n; j++) {
+                    if (i == 0 && j == 0) { t += "<th class=\"center\"></" + "th>\n"; }
+                    else if (i == 0 && j != 0) { t += "<th class=\"center\">" + j + "</" + "th>\n"; } //行の数字
+                    else if (i != 0 && j == 0) { t += "<th class=\"center\">" + i + "</" + "th>\n"; } //列の数字
+                    else {
+                        t += "<td class=\"center\"><input type=\"text\" id=\"m_" + (i - 1) + "_" + (j - 1)
+                            + "\" name=\"m_" + (i - 1) + "_" + (j - 1) + "\" style=\"width:30px;\" /><" + "/td>\n"; //中の枠
+                    }
+                }
+                t += "<" + "/tr>\n";
+            }
+            t += "<" + "/table>\n";
+            t += "<p><input type=\"button\" value=\"計算\" onclick=\"javascript:calculate()\" /><" + "/p>\n";
+            $('matrixIn').innerHTML = t;
+        }
+
+        //表から配列へ
+        function table2Array() {
+            var matrix = new Array(n);
+            for (i = 0; i < n; i++) {
+                matrix[i] = new Array(n);
+                for (j = 0; j < n; j++) {
+                    if (parseInt($('m_' + i + '_' + j).value) != 'NaN')
+                        matrix[i][j] = $('m_' + i + '_' + j).value;
+                    else
+                        matrix[i][j] = ''
+                }
+            }
+            return (matrix);
+        }
+
+        //表を埋める
+        function fillTable(matrix) {
+            for (i = 0; i < matrix.length && i < n; i++) {
+                for (j = 0; j < matrix[i].length && j < n; j++)
+                    $('m_' + i + '_' + j).value = matrix[i][j];
+            }
+        }
+
+        //計算する
+        function calculate() {
+            //行列に代入する
+            matrix01 = table2Array();
+            matrix02 = table2Array();
+            //数字かどうか検査
+            for (i = 0; i < matrix01.length; i++) {
+                for (j = 0; j < matrix01[i].length; j++) {
+                    if (!matrix01[i][j] || isNaN(matrix01[i][j])) {
+                        alert("(" + (i + 1) + ", " + (j + 1) + ") の要素は空か数字ではありません。"); return false;
+                    }
+                }
+            }
+            //計算
+            $('matrixVal').innerHTML = "<p><span class=\"big\">行列式の値 = " + det(matrix01) + "<" + "/span><" + "/p>";
+            $('matrixInv').innerHTML = inverse(matrix02);
+
+        }
+
+        //逆行列
+        function inverse(a) {
+            var n = a.length; //行列の次数
+            var buf; //一時的なデータを蓄える
+            var i, j, k; //カウンタ
+            var o = ""; //HTMLの出力用
+
+            //単位行列を作る
+            var inv = new Array(n);
+            for (i = 0; i < n; i++) {
+                inv[i] = new Array(n);
+                for (j = 0; j < n; j++) {
+                    inv[i][j] = (i == j) ? 1.0 : 0.0;
+                }
+            }
+            //掃き出し法
+            for (i = 0; i < n; i++) {
+                buf = 1 / a[i][i];
+                for (j = 0; j < n; j++) {
+                    a[i][j] *= buf;
+                    inv[i][j] *= buf;
+                }
+                for (j = 0; j < n; j++) {
+                    if (i != j) {
+                        buf = a[j][i];
+                        for (k = 0; k < n; k++) {
+                            a[j][k] -= a[i][k] * buf;
+                            inv[j][k] -= inv[i][k] * buf;
+                        }
+                    }
+                }
+            }
+            //逆行列を出力
+            o += "<table style=\"margin:auto;\" border=\"1;\" bgcolor=\"#ffffff\">\n"
+            for (i = 0; i <= n; i++) {
+                o += "<tr>\n"
+                for (j = 0; j <= n; j++) {
+                    if (i == 0 & j == 0) { o += "<th class = matrix><" + "/th>"; }
+                    else if (i == 0 & j != 0) { o += "<th class=\"center\">" + j + "<" + "/th>"; }
+                    else if (i != 0 & j == 0) { o += "<th class=\"center\">" + i + "<" + "/th>"; }
+                    else {
+                        o += "<td class=\"center\">" + Math.round(inv[i - 1][j - 1] * 1000000) / 1000000
+                            + "<" + "/td>\n";
+                    }
+                }
+                o += "<" + "/tr>\n"
+            }
+            o += "<" + "/table>\n";
+            return (o);
+        }
+
+        //行列式の値
+        function det(a) {
+            var n = a.length; //行列の次数
+            var i, j, k; //カウンタ
+            var det = 1; //仮の行列式の値
+
+            for (i = 0; i < n; i++) {
+                for (j = 0; j < n; j++) {
+                    if (i < j) {
+                        buf = a[j][i] / a[i][i];
+                        for (k = 0; k < n; k++) { a[j][k] -= a[i][k] * buf; }
+                    }
+                }
+            }
+            //対角部分の積
+            for (i = 0; i < n; i++) { det *= a[i][i]; }
+            return (Math.round(det * 1000000) / 1000000);
+
+        }
+
+        window.onload = init;
+    </script>
+</head>
+
+<body>
+    <h1 class="sentence">n×nの逆行列と行列式の値を求める</h1>
+    <h2 class="sentence">入力</h2>
+    <p class="button_function">
+        <input type="button" onclick="javascript:matrixsize(n+1);" value="▲">
+        <input type="button" onclick="javascript:matrixsize(n-1);" value="▼">
+        <input type="button" onclick="javascript:createTable();" value="リセット">
+    </p>
+    <div class="In_result" id="matrixIn"></div>
+
+    <h2 class="sentence">結果</h2>
+    <div class="Inv_result" id="matrixInv"></div>
+    <div class="Val_result" id="matrixVal"></div>
+
+</body>
+
+</html>
